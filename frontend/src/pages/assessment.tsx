@@ -1,0 +1,128 @@
+import { useState } from "react";
+import Sidebar from "../components/sideBar";
+import TopBar from "../components/topBar";
+import WelcomeScreen from "../components/welcomeScreen";
+import QuestionScreen from "../components/questionScreen";
+import CompletionScreen from "../components/completionScreen";
+import AdminPanel from "../components/admin/adminPanel";
+import { assessmentApi } from "../api/assessmentApi";
+import type { QuestionPublic, ProgressInfo, SummaryResponse } from "../types/assessment";
+
+type NavItem = "assessment" | "instructions" | "resources" | "notes" | "admin";
+
+export default function Assessment() {
+  const [navItem, setNavItem] = useState<NavItem>("instructions");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [question, setQuestion] = useState<QuestionPublic | null>(null);
+  const [progress, setProgress] = useState<ProgressInfo | null>(null);
+  const [status, setStatus] = useState<"in_progress" | "completed" | null>(null);
+  const [summary, setSummary] = useState<SummaryResponse | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
+  const [pendingNextQuestion, setPendingNextQuestion] = useState<QuestionPublic | null>(null);
+  const [pendingCompletion, setPendingCompletion] = useState(false);
+
+  const handleStart = async () => {
+    setStarting(true);
+    try {
+      const res = await assessmentApi.start();
+      setSessionId(res.session_id);
+      setQuestion(res.question);
+      setProgress(res.progress);
+      setStatus(res.status);
+      setNavItem("assessment");
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const finishIfComplete = async (id: string, newStatus: string) => {
+    if (newStatus === "completed") {
+      const s = await assessmentApi.getSummary(id);
+      setSummary(s);
+      setShowComplete(true);
+    }
+  };
+
+  const handleSubmitAnswer = async (answer: string) => {
+    if (!sessionId) throw new Error("No active session");
+    const res = await assessmentApi.submitAnswer(sessionId, answer);
+    setProgress(res.progress);
+    setStatus(res.status);
+    if (res.result === "correct") {
+      // Held here rather than applied immediately, so the "Correct!" feedback
+      // screen stays visible until the user clicks "Next Question".
+      setPendingNextQuestion(res.next_question);
+      setPendingCompletion(res.status === "completed");
+    }
+    return { correct: res.result === "correct", message: res.message };
+  };
+
+  const handleSkip = async () => {
+    if (!sessionId) return;
+    const res = await assessmentApi.skip(sessionId);
+    setProgress(res.progress);
+    setStatus(res.status);
+    setQuestion(res.next_question);
+    await finishIfComplete(sessionId, res.status);
+  };
+
+  const handleAdvance = async () => {
+    if (pendingCompletion && sessionId) {
+      await finishIfComplete(sessionId, "completed");
+    } else {
+      setQuestion(pendingNextQuestion);
+    }
+    setPendingNextQuestion(null);
+    setPendingCompletion(false);
+  };
+
+  const inProgress = sessionId && question && progress && status === "in_progress";
+
+  return (
+    <div className="flex h-screen w-full bg-surface">
+      <Sidebar
+        activeItem={navItem}
+        onNavigate={setNavItem}
+        canSubmitFinal={status === "in_progress"}
+        onSubmitFinal={async () => {
+          if (!sessionId) return;
+          const s = await assessmentApi.getSummary(sessionId);
+          setSummary(s);
+          setShowComplete(true);
+        }}
+      />
+
+      <div className="flex flex-1 flex-col overflow-y-auto">
+        <TopBar />
+
+        {!sessionId && (navItem === "instructions" || navItem === "assessment") && (
+          <WelcomeScreen onStart={handleStart} starting={starting} />
+        )}
+
+        {inProgress && navItem === "assessment" && (
+          <QuestionScreen
+            key={question!.id}
+            question={question!}
+            progress={progress!}
+            onSubmitAnswer={handleSubmitAnswer}
+            onSkip={handleSkip}
+            onAdvance={handleAdvance}
+          />
+        )}
+
+        {navItem === "resources" && (
+          <div className="px-8 py-10 text-ink/50">Resources are not part of the MVP yet.</div>
+        )}
+        {navItem === "notes" && (
+          <div className="px-8 py-10 text-ink/50">Notes are not part of the MVP yet.</div>
+        )}
+        {navItem === "admin" && <AdminPanel />}
+      </div>
+
+      {showComplete && (
+        <CompletionScreen summary={summary} onClose={() => setShowComplete(false)} />
+      )}
+    </div>
+  );
+}

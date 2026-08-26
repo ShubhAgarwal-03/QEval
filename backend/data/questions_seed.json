@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q001",
+    "question": "What is a primary key?",
+    "expected_answer": "A primary key uniquely identifies each record in a table.",
+    "topic": "DBMS",
+    "difficulty": "easy",
+    "required_concepts": ["uniquely identifies", "record"]
+  },
+  {
+    "id": "q002",
+    "question": "What is a stack?",
+    "expected_answer": "A stack is a data structure that follows the LIFO principle.",
+    "topic": "Data Structures",
+    "difficulty": "easy",
+    "required_concepts": ["data structure", "LIFO"]
+  },
+  {
+    "id": "q003",
+    "question": "What does inheritance mean in OOP?",
+    "expected_answer": "Inheritance allows a class to acquire properties and behaviors from another class.",
+    "topic": "OOP",
+    "difficulty": "easy",
+    "required_concepts": ["class", "acquire properties/behavior"]
+  },
+  {
+    "id": "q004",
+    "question": "What is the purpose of normalization?",
+    "expected_answer": "Normalization organizes database tables to reduce data redundancy and improve data integrity.",
+    "topic": "DBMS",
+    "difficulty": "medium",
+    "required_concepts": ["reduce redundancy", "data integrity"]
+  },
+  {
+    "id": "q005",
+    "question": "What is a queue?",
+    "expected_answer": "A queue is a data structure that follows the FIFO principle.",
+    "topic": "Data Structures",
+    "difficulty": "easy",
+    "required_concepts": ["data structure", "FIFO"]
+  }
+]
