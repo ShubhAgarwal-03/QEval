@@ -3,7 +3,7 @@ import Sidebar from "../components/sideBar";
 import TopBar from "../components/topBar";
 import WelcomeScreen from "../components/welcomeScreen";
 import QuestionScreen from "../components/questionScreen";
-import CompletionScreen from "../components//completionScreen";
+import CompletionScreen from "../components/completionScreen";
 import AdminPanel from "../components/admin/adminPanel";
 import { assessmentApi } from "../api/assessmentApi";
 import type { QuestionPublic, ProgressInfo, SummaryResponse } from "../types/assessment";
@@ -18,12 +18,14 @@ export default function Assessment() {
   const [status, setStatus] = useState<"in_progress" | "completed" | null>(null);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [showComplete, setShowComplete] = useState(false);
   const [pendingNextQuestion, setPendingNextQuestion] = useState<QuestionPublic | null>(null);
   const [pendingCompletion, setPendingCompletion] = useState(false);
 
   const handleStart = async () => {
     setStarting(true);
+    setStartError(null);
     try {
       const res = await assessmentApi.start();
       setSessionId(res.session_id);
@@ -31,6 +33,15 @@ export default function Assessment() {
       setProgress(res.progress);
       setStatus(res.status);
       setNavItem("assessment");
+    } catch (err) {
+      // Previously this failed silently - the button would just reset with
+      // no feedback. Surface it so mis-set env vars / CORS / backend errors
+      // are visible on the page instead of only in the browser console.
+      setStartError(
+        err instanceof Error
+          ? err.message
+          : "Could not start the assessment. Please try again."
+      );
     } finally {
       setStarting(false);
     }
@@ -50,8 +61,6 @@ export default function Assessment() {
     setProgress(res.progress);
     setStatus(res.status);
     if (res.result === "correct") {
-      // Held here rather than applied immediately, so the "Correct!" feedback
-      // screen stays visible until the user clicks "Next Question".
       setPendingNextQuestion(res.next_question);
       setPendingCompletion(res.status === "completed");
     }
@@ -97,7 +106,7 @@ export default function Assessment() {
         <TopBar />
 
         {!sessionId && (navItem === "instructions" || navItem === "assessment") && (
-          <WelcomeScreen onStart={handleStart} starting={starting} />
+          <WelcomeScreen onStart={handleStart} starting={starting} error={startError} />
         )}
 
         {inProgress && navItem === "assessment" && (

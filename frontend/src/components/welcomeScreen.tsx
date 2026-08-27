@@ -3,6 +3,7 @@ import { Bot, FileEdit, SkipForward, MonitorCheck, Sparkles } from "lucide-react
 interface WelcomeScreenProps {
   onStart: () => void;
   starting: boolean;
+  error?: string | null;
 }
 
 const FEATURES = [
@@ -26,7 +27,7 @@ const FEATURES = [
   },
 ];
 
-export default function WelcomeScreen({ onStart, starting }: WelcomeScreenProps) {
+export default function WelcomeScreen({ onStart, starting, error }: WelcomeScreenProps) {
   return (
     <div className="mx-auto max-w-3xl px-8 py-12">
       <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600">
@@ -85,6 +86,13 @@ export default function WelcomeScreen({ onStart, starting }: WelcomeScreenProps)
           {!starting && <span aria-hidden>→</span>}
         </button>
       </div>
+
+      {error && (
+        <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p className="font-semibold">Couldn't start the assessment</p>
+          <p className="text-red-500/80">{error}</p>
+        </div>
+      )}
     </div>
   );
 }
