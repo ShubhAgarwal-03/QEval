@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Plus, LogOut } from "lucide-react";
-import AdminKeyGate, { getStoredAdminKey, clearStoredAdminKey } from "./AdminKeyGate";
-import QuestionRow from "./QuestionRow";
-import QuestionFormPanel from "./QuestionFormPanel";
+import AdminKeyGate, { getStoredAdminKey, clearStoredAdminKey } from "./adminkeyGate";
+import QuestionRow from "./questionRow";
+import QuestionFormPanel from "./questionFormPanel";
 import { adminApi, AdminApiError } from "../../api/adminApi";
 import type { QuestionAdmin, QuestionCreatePayload, QuestionUpdatePayload } from "../../types/admin";
 
