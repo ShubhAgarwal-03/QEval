@@ -3,7 +3,7 @@ import Sidebar from "../components/sideBar";
 import TopBar from "../components/topBar";
 import WelcomeScreen from "../components/welcomeScreen";
 import QuestionScreen from "../components/questionScreen";
-import CompletionScreen from "../components/completionScreen";
+import CompletionScreen from "../components//completionScreen";
 import AdminPanel from "../components/admin/adminPanel";
 import { assessmentApi } from "../api/assessmentApi";
 import type { QuestionPublic, ProgressInfo, SummaryResponse } from "../types/assessment";

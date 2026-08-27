@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { SkipForward, XCircle } from "lucide-react";
-import ProgressHeader from "./ProgressHeader";
-import AnswerInput from "./AnswerInput";
-import EvaluationPanel from "./EvaluationPanel";
+import ProgressHeader from "./progressHeader";
+import AnswerInput from "./answerInput";
+import EvaluationPanel from "./evualtionPanel";
 import type { QuestionPublic, ProgressInfo } from "../types/assessment";
 
 type Phase = "answering" | "submitting" | "correct" | "incorrect";
