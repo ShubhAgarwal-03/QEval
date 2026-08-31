@@ -10,7 +10,8 @@ import json
 import logging
 from dataclasses import dataclass
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.core.config import get_settings
 from app.evaluator.prompt_templates import (
@@ -33,20 +34,12 @@ class EvaluatorService:
         settings = get_settings()
         self.api_key = api_key or settings.gemini_api_key
         self.model_name = model_name or settings.gemini_model
-        self._model = None  # lazy-initialized so tests can construct this without a key
+        self._client = None  # lazy-initialized so tests can construct this without a key
 
-    def _get_model(self):
-        if self._model is None:
-            genai.configure(api_key=self.api_key)
-            self._model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction=EVALUATION_SYSTEM_INSTRUCTION,
-                generation_config={
-                    "response_mime_type": "application/json",
-                    "thinking_config": {"thinking_budget": 512},
-                    },
-            )
-        return self._model
+    def _get_client(self):
+        if self._client is None:
+            self._client = genai.Client(api_key=self.api_key)
+        return self._client
 
     def evaluate(
         self,
@@ -63,8 +56,16 @@ class EvaluatorService:
         )
 
         try:
-            model = self._get_model()
-            response = model.generate_content(prompt)
+            client = self._get_client()
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=EVALUATION_SYSTEM_INSTRUCTION,
+                    response_mime_type="application/json",
+                    thinking_config=types.ThinkingConfig(thinking_level="low"),
+                ),
+            )
             return self._parse_response(response.text)
         except Exception as exc:  # noqa: BLE001 - fail-safe boundary, must not raise
             logger.exception("Gemini evaluation call failed: %s", exc)
