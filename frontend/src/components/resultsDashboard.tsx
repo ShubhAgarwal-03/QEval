@@ -1,4 +1,4 @@
-import { Trophy, CheckCircle2, XCircle, SkipForward, ListChecks } from "lucide-react";
+import { Trophy, CheckCircle2, XCircle, SkipForward, ListChecks, Lightbulb } from "lucide-react";
 import type { SummaryResponse } from "../types/assessment";
 
 interface ResultsDashboardProps {
@@ -6,7 +6,7 @@ interface ResultsDashboardProps {
 }
 
 export default function ResultsDashboard({ summary }: ResultsDashboardProps) {
-  const { total_questions, correct, incorrect_attempts, skipped, completed } = summary;
+  const { total_questions, correct, incorrect_attempts, skipped, completed, performance_insight } = summary;
   const scorePercent = total_questions > 0 ? Math.round((correct / total_questions) * 100) : 0;
   const circumference = 2 * Math.PI * 42;
 
@@ -74,6 +74,18 @@ export default function ResultsDashboard({ summary }: ResultsDashboardProps) {
           <p className="text-2xl font-bold text-ink">{skipped}</p>
         </div>
       </div>
+
+      {performance_insight && (
+        <div className="mb-8 flex items-start gap-3 rounded-xl2 border border-brand-100 bg-brand-50/50 p-5">
+          <div className="mt-0.5 shrink-0 text-brand-600">
+            <Lightbulb size={16} />
+          </div>
+          <div>
+            <p className="mb-1 text-sm font-semibold text-ink">Performance Insights</p>
+            <p className="text-sm leading-relaxed text-ink/70">{performance_insight}</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3 rounded-xl2 bg-brand-50/60 p-5 text-sm text-ink/70">
         <ListChecks size={16} className="shrink-0 text-brand-600" />

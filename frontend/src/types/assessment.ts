@@ -41,4 +41,5 @@ export interface SummaryResponse {
   incorrect_attempts: number;
   skipped: number;
   completed: boolean;
+  performance_insight?: string | null;
 }
