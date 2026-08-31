@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SkipForward, XCircle } from "lucide-react";
+import { SkipForward, XCircle, HelpCircle } from "lucide-react";
 import ProgressHeader from "./progressHeader";
 import AnswerInput from "./answerInput";
 import EvaluationPanel from "./evualtionPanel";
@@ -12,7 +12,7 @@ interface QuestionScreenProps {
   progress: ProgressInfo;
   onSubmitAnswer: (answer: string) => Promise<{ correct: boolean; message: string }>;
   onSkip: () => Promise<void>;
-  onAdvance: () => void; // called after user clicks "Next Question" on a correct result
+  onAdvance: () => void;
 }
 
 export default function QuestionScreen({
@@ -44,8 +44,6 @@ export default function QuestionScreen({
     setSkipping(true);
     try {
       await onSkip();
-      // Parent swaps in the next question via a fresh `question` prop;
-      // reset local state for the new question.
       setAnswer("");
       setPhase("answering");
     } finally {
@@ -55,29 +53,44 @@ export default function QuestionScreen({
 
   const handleNext = () => {
     setAnswer("");
-    // Don't reset phase here: if this was the last question, the parent
-    // unmounts this component entirely (no next `question` prop comes in),
-    // so resetting to "answering" only caused a flash of the stale question
-    // before that unmount. The `key={question.id}` remount on the parent
-    // already resets phase correctly when there IS a next question.
     onAdvance();
   };
 
   const showSidePanel = phase === "correct";
 
   return (
-    <div className="mx-auto flex max-w-5xl gap-8 px-8 py-10">
+    <div className="mx-auto flex w-full flex-col gap-6 px-4 py-6 md:max-w-5xl md:flex-row md:gap-8 md:px-8 md:py-10">
       <div className="flex-1">
-        <ProgressHeader currentNumber={progress.current_number} total={progress.total} />
+        <div className="mb-4 flex items-center justify-between">
+          <ProgressHeader currentNumber={progress.current_number} total={progress.total} />
+          {question.topic && (
+            <span className="ml-4 shrink-0 whitespace-nowrap rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600">
+              {question.topic}
+            </span>
+          )}
+        </div>
 
-        <h1 className="mb-6 text-2xl font-bold text-ink">{question.question_text}</h1>
+        <div className="mb-6 rounded-xl2 bg-white p-6 shadow-card">
+          <div className="mb-1 flex items-start gap-2">
+            <h1 className="text-2xl font-bold text-ink">{question.question_text}</h1>
+            <HelpCircle size={16} className="mt-1.5 shrink-0 text-ink/25" />
+          </div>
+          {question.difficulty && (
+            <p className="text-xs font-medium uppercase tracking-wide text-ink/40">
+              Complexity: {question.difficulty}
+            </p>
+          )}
+        </div>
 
         {phase === "correct" ? (
           <div className="rounded-xl2 border border-emerald-200 bg-emerald-50/50 p-1">
             <p className="px-4 pt-3 text-sm font-semibold text-emerald-700">
               ✓ Correct! Moving to next question…
             </p>
-            <div className="m-3 rounded-lg bg-white p-4 text-[15px] leading-relaxed text-ink/80">
+            <p className="mx-3 mt-2 text-[11px] font-semibold tracking-wide text-ink/40">
+              YOUR RESPONSE
+            </p>
+            <div className="m-3 mt-1 rounded-lg bg-white p-4 text-[15px] leading-relaxed text-ink/80">
               {answer}
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import Sidebar from "../components/sideBar";
 import TopBar from "../components/topBar";
 import WelcomeScreen from "../components/welcomeScreen";
@@ -35,9 +36,6 @@ export default function Assessment() {
       setStatus(res.status);
       setNavItem("assessment");
     } catch (err) {
-      // Previously this failed silently - the button would just reset with
-      // no feedback. Surface it so mis-set env vars / CORS / backend errors
-      // are visible on the page instead of only in the browser console.
       setStartError(
         err instanceof Error
           ? err.message
@@ -52,9 +50,6 @@ export default function Assessment() {
     if (newStatus === "completed") {
       const s = await assessmentApi.getSummary(id);
       setSummary(s);
-      // Natural completion now hands off to the ResultsDashboard render
-      // branch below (driven by `status === "completed"`) instead of the
-      // CompletionScreen modal, so clear the question rather than opening it.
       setQuestion(null);
     }
   };
@@ -90,27 +85,43 @@ export default function Assessment() {
     setPendingCompletion(false);
   };
 
-  // No longer gated on `status` - once we hit "completed" we still want the
-  // dashboard branch below to take over, not have this expression punt us
-  // back to a blank state before that branch gets a chance to render.
   const inProgress = Boolean(sessionId && question && progress);
 
   return (
     <div className="flex h-screen w-full bg-surface">
-      <Sidebar
-        activeItem={navItem}
-        onNavigate={setNavItem}
-        canSubmitFinal={status === "in_progress"}
-        onSubmitFinal={async () => {
-          if (!sessionId) return;
-          const s = await assessmentApi.getSummary(sessionId);
-          setSummary(s);
-          setShowComplete(true);
-        }}
-      />
+      <div className="hidden md:flex">
+        <Sidebar
+          activeItem={navItem}
+          onNavigate={setNavItem}
+          canSubmitFinal={status === "in_progress"}
+          onSubmitFinal={async () => {
+            if (!sessionId) return;
+            const s = await assessmentApi.getSummary(sessionId);
+            setSummary(s);
+            setShowComplete(true);
+          }}
+        />
+      </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto">
-        <TopBar />
+        <div className="hidden md:block">
+          <TopBar />
+        </div>
+
+        {/* Mobile-only compact header, replaces sidebar + top bar on small screens */}
+        <div className="flex items-center justify-between border-b border-ink/5 bg-white px-4 py-3 md:hidden">
+          <button
+            onClick={() => setNavItem("instructions")}
+            aria-label="Close assessment"
+            className="text-ink/50 hover:text-ink"
+          >
+            <X size={20} />
+          </button>
+          <span className="text-base font-bold text-ink">QEval</span>
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-ink/10">
+            <div className="h-full w-full bg-gradient-to-br from-brand-400 to-brand-600" />
+          </div>
+        </div>
 
         {!sessionId && (navItem === "instructions" || navItem === "assessment") && (
           <WelcomeScreen onStart={handleStart} starting={starting} error={startError} />
