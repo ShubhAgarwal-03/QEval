@@ -4,6 +4,7 @@ import TopBar from "../components/topBar";
 import WelcomeScreen from "../components/welcomeScreen";
 import QuestionScreen from "../components/questionScreen";
 import CompletionScreen from "../components/completionScreen";
+import ResultsDashboard from "../components/resultsDashboard";
 import AdminPanel from "../components/admin/adminPanel";
 import { assessmentApi } from "../api/assessmentApi";
 import type { QuestionPublic, ProgressInfo, SummaryResponse } from "../types/assessment";
@@ -51,7 +52,10 @@ export default function Assessment() {
     if (newStatus === "completed") {
       const s = await assessmentApi.getSummary(id);
       setSummary(s);
-      setShowComplete(true);
+      // Natural completion now hands off to the ResultsDashboard render
+      // branch below (driven by `status === "completed"`) instead of the
+      // CompletionScreen modal, so clear the question rather than opening it.
+      setQuestion(null);
     }
   };
 
@@ -86,7 +90,10 @@ export default function Assessment() {
     setPendingCompletion(false);
   };
 
-  const inProgress = sessionId && question && progress && status === "in_progress";
+  // No longer gated on `status` - once we hit "completed" we still want the
+  // dashboard branch below to take over, not have this expression punt us
+  // back to a blank state before that branch gets a chance to render.
+  const inProgress = Boolean(sessionId && question && progress);
 
   return (
     <div className="flex h-screen w-full bg-surface">
@@ -118,6 +125,10 @@ export default function Assessment() {
             onSkip={handleSkip}
             onAdvance={handleAdvance}
           />
+        )}
+
+        {sessionId && status === "completed" && summary && navItem === "assessment" && (
+          <ResultsDashboard summary={summary} />
         )}
 
         {navItem === "resources" && (

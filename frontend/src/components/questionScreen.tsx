@@ -55,7 +55,11 @@ export default function QuestionScreen({
 
   const handleNext = () => {
     setAnswer("");
-    setPhase("answering");
+    // Don't reset phase here: if this was the last question, the parent
+    // unmounts this component entirely (no next `question` prop comes in),
+    // so resetting to "answering" only caused a flash of the stale question
+    // before that unmount. The `key={question.id}` remount on the parent
+    // already resets phase correctly when there IS a next question.
     onAdvance();
   };
 
