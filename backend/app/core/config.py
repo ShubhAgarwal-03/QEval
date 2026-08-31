@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """
 
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.6-flash"
+    gemini_model: str = "gemini-3.1-flash-lite"
 
     database_url: str = "sqlite:///./assessment.db"
 
