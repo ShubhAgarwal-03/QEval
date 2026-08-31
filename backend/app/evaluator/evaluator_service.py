@@ -41,7 +41,10 @@ class EvaluatorService:
             self._model = genai.GenerativeModel(
                 model_name=self.model_name,
                 system_instruction=EVALUATION_SYSTEM_INSTRUCTION,
-                generation_config={"response_mime_type": "application/json"},
+                generation_config={
+                    "response_mime_type": "application/json",
+                    "thinking_config": {"thinking_budget": 512},
+                    },
             )
         return self._model
 
