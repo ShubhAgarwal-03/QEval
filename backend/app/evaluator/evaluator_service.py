@@ -63,7 +63,9 @@ class EvaluatorService:
                 config=types.GenerateContentConfig(
                     system_instruction=EVALUATION_SYSTEM_INSTRUCTION,
                     response_mime_type="application/json",
-                    thinking_config=types.ThinkingConfig(thinking_level="low"),
+                    thinking_config=types.ThinkingConfig(
+                        thinking_level=types.ThinkingLevel.LOW
+                    ),
                 ),
             )
             return self._parse_response(response.text)
